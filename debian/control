@@ -1,0 +1,7 @@
+Package: projetor-enc
+Version: 1.0-1
+Section: base
+Priority: optional
+Architecture: all
+Maintainer: Elton Nike Casa <eltonnikecasa@gmail.com>
+Description: Controle de projetor via comandos Epson com log e controle de religamento.
