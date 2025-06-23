@@ -1,0 +1,5 @@
+#!/bin/bash
+systemctl disable projetor-enc.service
+systemctl stop projetor-enc.service
+systemctl daemon-reload
+exit 0
