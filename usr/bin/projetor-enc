@@ -1,0 +1,58 @@
+#!/bin/bash
+# Projetor-ENC
+# Script para controle do projetor via comandos Epson
+# Copyright (C) 2024 Elton Nike Casa - CANAL ENC
+# Licenciado sob GNU GPL v3
+
+if [ "$(id -u)" -ne 0 ]; then
+    echo "Este script precisa ser executado como root." >&2
+    exit 1
+fi
+
+send_projector_cmd() {
+    local cmd=$1
+    /usr/sbin/epson-projector-cmd sendcmd "$cmd" &
+    sleep 2
+}
+
+case "$1" in
+    pwron)
+        send_projector_cmd 'PWR ON'
+        send_projector_cmd 'SOURCE 1F'
+        send_projector_cmd 'INITALL'
+        send_projector_cmd 'defaults'
+        ;;
+    reset)
+        send_projector_cmd 'SOURCE 1F'
+        send_projector_cmd 'INITALL'
+        send_projector_cmd 'defaults'
+        ;;
+    pwroff)
+        send_projector_cmd 'PWR OFF'
+        send_projector_cmd 'PWR OFF'
+        sleep 2
+        send_projector_cmd 'PWR OFF'
+        ;;
+    somfix)
+        rsync -va --delete-after /etc/enc/default.pa /etc/pulse/default.pa
+        echo "Configurações de som atualizadas."
+        ;;
+    cdrom)
+        cdr=$(df -h | awk '{ print $1}' | grep -E "sr0|cdrom")
+        if [ -n "$cdr" ]; then
+            eject /dev/cdrom
+            echo "CD/DVD ejetado."
+        else
+            echo "Nenhuma mídia encontrada para ejeção."
+        fi
+        ;;
+    *)
+        echo -e "Uso: $0 <opção>"
+        echo -e "  pwron     - Ligar projetor"
+        echo -e "  pwroff    - Desligar projetor"
+        echo -e "  reset     - Resetar"
+        echo -e "  somfix    - Corrigir som"
+        echo -e "  cdrom     - Ejetar mídia"
+        exit 3
+        ;;
+esac
