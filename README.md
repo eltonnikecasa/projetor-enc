@@ -17,3 +17,5 @@ Serviço systemd para integração com o sistema.
 Licença
 Este projeto está licenciado sob a GNU GPL v3 com cláusula adicional de atribuição.
 Por favor, mantenha os créditos originais em qualquer modificação.
+
+_________________________________________________________________________________________________________
