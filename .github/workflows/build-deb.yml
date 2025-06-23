@@ -30,7 +30,7 @@ jobs:
         run: make
 
       - name: Upload .deb artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: projetor-enc
           path: projetor-enc_*.deb
