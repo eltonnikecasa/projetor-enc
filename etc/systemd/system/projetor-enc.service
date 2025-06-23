@@ -1,0 +1,24 @@
+# Projetor-ENC Service File
+# Copyright (C) 2024 Elton Nike Casa - CANAL ENC
+#
+# Licenciado sob GNU GPL v3, veja LICENSE para detalhes.
+
+[Unit]
+Description=Ligar e Desligar Projetor enc
+After=network.target local-fs.target
+Requires=network.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+
+ExecStart=/usr/local/bin/projetor-enc-wrapper start
+ExecStop=/usr/local/bin/projetor-enc-wrapper stop
+ExecReload=/usr/local/bin/projetor-enc-wrapper restart
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=projetor-enc
+
+[Install]
+WantedBy=multi-user.target
