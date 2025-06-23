@@ -1,0 +1,33 @@
+#!/bin/bash
+# Script pós-instalação para projetor-enc
+# Copyright (C) 2024 Elton Nike Casa - CANAL ENC
+
+set -e
+
+echo "Configurando serviço projetor-enc..."
+
+# Ajusta permissões dos executáveis
+chmod +x /usr/bin/projetor-enc
+chmod +x /usr/local/bin/projetor-enc-wrapper
+chmod +x /usr/sbin/epson-projector-cmd
+
+# Ajusta permissão do arquivo de serviço
+chmod 644 /etc/systemd/system/projetor-enc.service
+
+# Cria diretórios de log e marcador, se não existirem
+mkdir -p /var/log/projetor-enc
+mkdir -p /var/lib
+
+# Configura permissões dos diretórios
+chmod 755 /var/log/projetor-enc
+chmod 755 /var/lib
+
+# Habilita o serviço no systemd
+systemctl daemon-reload
+systemctl enable projetor-enc.service
+
+echo "Instalação concluída."
+echo "Para iniciar o serviço, execute:"
+echo "sudo systemctl start projetor-enc.service"
+
+exit 0
