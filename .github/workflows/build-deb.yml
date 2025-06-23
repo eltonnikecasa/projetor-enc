@@ -1,9 +1,6 @@
 name: Build Debian Package
 
 on:
-  push:
-    branches:
-      - main
   release:
     types: [published]
 
@@ -15,8 +12,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Install build tools
-        run: sudo apt-get update && sudo apt-get install -y build-essential devscripts debhelper dpkg
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential devscripts debhelper dpkg jq curl
 
       - name: Set permissions
         run: |
@@ -28,24 +27,17 @@ jobs:
 
       - name: Build .deb package
         run: |
-          mkdir -p build/DEBIAN
-          mkdir -p build/usr/bin
-          mkdir -p build/usr/local/bin
-          mkdir -p build/usr/sbin
-          mkdir -p build/etc/systemd/system
+          mkdir -p build/DEBIAN build/usr/bin build/usr/local/bin build/usr/sbin build/etc/systemd/system
 
-          # Copia os arquivos
-          cp -r usr/bin/projetor-enc build/usr/bin/
-          cp -r usr/local/bin/projetor-enc-wrapper build/usr/local/bin/
-          cp -r usr/sbin/epson-projector-cmd build/usr/sbin/
-          cp -r etc/systemd/system/projetor-enc.service build/etc/systemd/system/
+          cp usr/bin/projetor-enc build/usr/bin/
+          cp usr/local/bin/projetor-enc-wrapper build/usr/local/bin/
+          cp usr/sbin/epson-projector-cmd build/usr/sbin/
+          cp etc/systemd/system/projetor-enc.service build/etc/systemd/system/
 
-          # Copia os arquivos de controle
           cp debian/control build/DEBIAN/
           cp debian/postinst build/DEBIAN/
           cp debian/prerm build/DEBIAN/
 
-          # Garante permissões corretas
           chmod 755 build/usr/bin/projetor-enc
           chmod 755 build/usr/local/bin/projetor-enc-wrapper
           chmod 755 build/usr/sbin/epson-projector-cmd
@@ -53,11 +45,32 @@ jobs:
           chmod 755 build/DEBIAN/postinst
           chmod 755 build/DEBIAN/prerm
 
-          # Constrói o pacote
           dpkg-deb --build build projetor-enc.deb
 
-      - name: Upload .deb artifact
-        uses: actions/upload-artifact@v4
+      - name: Upload .deb to Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: projetor-enc
-          path: projetor-enc.deb
+          files: projetor-enc.deb
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Cleanup old releases (keep only last 5)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          echo "Cleaning up old releases, keeping only 5 latest..."
+
+          # List releases sorted by creation date descending
+          releases=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/$REPO/releases?per_page=100" | jq -r '.[] | "\(.id) \(.created_at)"' | sort -rk2)
+
+          count=0
+          echo "$releases" | while read id date; do
+            count=$((count+1))
+            if [ $count -gt 5 ]; then
+              echo "Deleting release ID $id created at $date"
+              curl -X DELETE -H "Authorization: token $GITHUB_TOKEN" \
+                "https://api.github.com/repos/$REPO/releases/$id"
+            fi
+          done
