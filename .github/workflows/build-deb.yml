@@ -27,10 +27,37 @@ jobs:
           chmod +x debian/prerm
 
       - name: Build .deb package
-        run: make
+        run: |
+          mkdir -p build/DEBIAN
+          mkdir -p build/usr/bin
+          mkdir -p build/usr/local/bin
+          mkdir -p build/usr/sbin
+          mkdir -p build/etc/systemd/system
+
+          # Copia os arquivos
+          cp -r usr/bin/projetor-enc build/usr/bin/
+          cp -r usr/local/bin/projetor-enc-wrapper build/usr/local/bin/
+          cp -r usr/sbin/epson-projector-cmd build/usr/sbin/
+          cp -r etc/systemd/system/projetor-enc.service build/etc/systemd/system/
+
+          # Copia os arquivos de controle
+          cp debian/control build/DEBIAN/
+          cp debian/postinst build/DEBIAN/
+          cp debian/prerm build/DEBIAN/
+
+          # Garante permissões corretas
+          chmod 755 build/usr/bin/projetor-enc
+          chmod 755 build/usr/local/bin/projetor-enc-wrapper
+          chmod 755 build/usr/sbin/epson-projector-cmd
+          chmod 644 build/etc/systemd/system/projetor-enc.service
+          chmod 755 build/DEBIAN/postinst
+          chmod 755 build/DEBIAN/prerm
+
+          # Constrói o pacote
+          dpkg-deb --build build projetor-enc.deb
 
       - name: Upload .deb artifact
         uses: actions/upload-artifact@v4
         with:
           name: projetor-enc
-          path: projetor-enc_*.deb
+          path: projetor-enc.deb
