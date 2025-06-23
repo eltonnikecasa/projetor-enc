@@ -1,0 +1,41 @@
+#!/bin/bash
+# Projetor-ENC Wrapper
+# Wrapper para controle de tempo de religamento e logs
+# Copyright (C) 2024 Elton Nike Casa - CANAL ENC
+# Licenciado sob GNU GPL v3
+
+LOG_DIR="/var/log/projetor-enc"
+MARKER="/var/lib/projetor-enc.marker"
+
+mkdir -p "$LOG_DIR"
+
+now=$(date '+%Y-%m-%d %H:%M:%S')
+
+case "$1" in
+    start)
+        if [ -f "$MARKER" ]; then
+            last_shutdown=$(cat "$MARKER")
+            last_time=$(date -d "$last_shutdown" +%s)
+            now_time=$(date +%s)
+            diff=$((now_time - last_time))
+            if [ $diff -lt 60 ]; then
+                echo "Aguardando $(60 - $diff) segundos para religar..."
+                sleep $((60 - diff))
+            fi
+        fi
+        projetor-enc pwron
+        ;;
+    stop)
+        echo "$now" > "$MARKER"
+        echo "$now - Projetor desligado" >> "$LOG_DIR/projetor-enc.log"
+        projetor-enc pwroff
+        ;;
+    restart)
+        projetor-enc reset
+        projetor-enc pwron
+        ;;
+    *)
+        echo "Uso: $0 start|stop|restart"
+        exit 1
+        ;;
+esac
