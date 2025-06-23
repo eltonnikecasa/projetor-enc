@@ -64,32 +64,6 @@ O serviço `projetor-enc.service` usa um wrapper que implementa lógica de atras
 
 ## Desenvolvimento
 
-### Gerar pacote `.deb` localmente
-
-Caso queira gerar o `.deb` localmente sem usar o GitHub Actions:
-
-```bash
-mkdir -p build/DEBIAN build/usr/bin build/usr/local/bin build/usr/sbin build/etc/systemd/system
-
-cp usr/bin/projetor-enc build/usr/bin/
-cp usr/local/bin/projetor-enc-wrapper build/usr/local/bin/
-cp usr/sbin/epson-projector-cmd build/usr/sbin/
-cp etc/systemd/system/projetor-enc.service build/etc/systemd/system/
-
-cp debian/control build/DEBIAN/
-cp debian/postinst build/DEBIAN/
-cp debian/prerm build/DEBIAN/
-
-chmod 755 build/usr/bin/projetor-enc
-chmod 755 build/usr/local/bin/projetor-enc-wrapper
-chmod 755 build/usr/sbin/epson-projector-cmd
-chmod 644 build/etc/systemd/system/projetor-enc.service
-chmod 755 build/DEBIAN/postinst
-chmod 755 build/DEBIAN/prerm
-
-dpkg-deb --build build projetor-enc.deb
-```
-
 ---
 
 ## Licença
